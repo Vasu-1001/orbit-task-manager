@@ -5,8 +5,12 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
+const rawPort = process.env.PORT;
+const parsedPort = rawPort ? parseInt(rawPort, 10) : 5000;
+const port = Number.isNaN(parsedPort) || parsedPort <= 0 ? 5000 : parsedPort;
+
 export const config = {
-  port: parseInt(process.env.PORT || '5000', 10),
+  port,
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: process.env.DATABASE_URL || '',
   jwtSecret: process.env.JWT_SECRET || 'orbit_super_secret_jwt_key_2026_change_in_production!',
