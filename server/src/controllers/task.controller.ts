@@ -114,7 +114,11 @@ export class TaskController {
         return;
       }
 
-      const result = await CloudinaryService.uploadImage(req.file.buffer, 'orbit_tasks');
+      const result = await CloudinaryService.uploadImage(
+        req.file.buffer,
+        'orbit_tasks',
+        req.file.mimetype || 'image/jpeg'
+      );
 
       res.status(200).json({
         message: 'Image uploaded successfully',

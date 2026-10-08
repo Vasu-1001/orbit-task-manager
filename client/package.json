@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:client": "npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

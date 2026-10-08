@@ -12,9 +12,21 @@
     "test:server": "npm --prefix server run test",
     "test": "npm run test:server",
     "migrate": "npm --prefix server run migrate",
-    "seed": "npm --prefix server run seed"
+    "seed": "npm --prefix server run seed",
+    "verify:smtp": "npm --prefix server run verify:smtp"
   },
-  "keywords": ["task-manager", "orbit", "saas", "react", "express", "postgresql"],
+  "keywords": [
+    "task-manager",
+    "orbit",
+    "saas",
+    "react",
+    "express",
+    "postgresql"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.5",
+    "pg": "^8.23.1"
+  }
 }

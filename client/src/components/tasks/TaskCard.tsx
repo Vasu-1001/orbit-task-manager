@@ -18,13 +18,14 @@ interface TaskCardProps {
   task: Task;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+export const TaskCard: React.FC<TaskCardProps> = React.memo(({ task }) => {
   const { toggleTaskStatus, setSelectedTask, setIsDetailsModalOpen, setIsEditModalOpen, deleteTask } =
     useTasks();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const urgency = getDueStatus(task.due_date, task.status === 'completed');
   const isCompleted = task.status === 'completed';
@@ -80,14 +81,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                   className="fixed inset-0 z-20"
                   onClick={() => setIsMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-1 w-36 rounded-xl bg-white dark:bg-slate-850 shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-30 animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 mt-1 w-36 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-30 animate-in fade-in zoom-in-95">
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
                       setSelectedTask(task);
                       setIsEditModalOpen(true);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-left font-medium"
                   >
                     <Edit2 className="w-3.5 h-3.5 text-indigo-500" />
                     Edit Task
@@ -129,13 +130,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </div>
 
         {/* Task Image Preview (if present) */}
-        {task.image_url && (
+        {task.image_url && !imageError && (
           <div className="mb-4 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 max-h-36 relative">
             <img
               src={task.image_url}
               alt={task.title}
               className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
+              decoding="async"
+              onError={() => setImageError(true)}
             />
             <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-medium text-white flex items-center gap-1">
               <ImageIcon className="w-3 h-3" />
@@ -145,7 +148,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         )}
 
         {/* Card Footer: Due Date and Inline Status Switcher */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <Calendar className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate max-w-[140px]">
@@ -193,4 +196,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       />
     </>
   );
-};
+});
+
+TaskCard.displayName = 'TaskCard';

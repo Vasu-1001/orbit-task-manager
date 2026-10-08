@@ -73,7 +73,7 @@ export const WelcomeBanner: React.FC<WelcomeBannerProps> = ({ onOpenFocusMode })
             size="md"
             icon={<Plus className="w-4 h-4" />}
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-white text-indigo-900 hover:bg-indigo-50 border-transparent font-semibold shadow-md"
+            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-glow border-transparent font-semibold"
           >
             Create Task
           </Button>

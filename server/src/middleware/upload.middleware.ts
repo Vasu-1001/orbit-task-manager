@@ -9,11 +9,13 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (allowedMimes.includes(file.mimetype)) {
+  const isImageMime = file.mimetype.startsWith('image/');
+  const hasImageExt = /\.(jpe?g|png|webp|gif|svg|bmp|tiff?|ico|avif|heic|heif)$/i.test(file.originalname);
+
+  if (isImageMime || hasImageExt) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only JPEG, PNG, WEBP, and GIF images are accepted.'));
+    cb(new Error('Invalid file type. Only image files are accepted.'));
   }
 };
 

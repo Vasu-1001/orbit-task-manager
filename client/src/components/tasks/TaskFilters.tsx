@@ -15,6 +15,29 @@ import type { ViewMode, TaskStatus, TaskPriority } from '../../types';
 export const TaskFilters: React.FC = () => {
   const { filters, updateFilter, resetFilters, viewMode, setViewMode, stats } = useTasks();
 
+  const [searchValue, setSearchValue] = React.useState(filters.search || '');
+
+  // Keep local search value in sync if filters.search is reset externally
+  React.useEffect(() => {
+    setSearchValue(filters.search || '');
+  }, [filters.search]);
+
+  // Debounce search update to prevent firing API queries on every keystroke
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      if ((filters.search || '') !== searchValue) {
+        updateFilter('search', searchValue);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [searchValue, filters.search, updateFilter]);
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+    updateFilter('search', '');
+  };
+
   const statusOptions: { label: string; value: TaskStatus | 'all'; count?: number }[] = [
     { label: 'All Tasks', value: 'all', count: stats?.total },
     { label: 'Pending', value: 'pending', count: stats?.pending },
@@ -30,15 +53,17 @@ export const TaskFilters: React.FC = () => {
         <div className="relative flex-1 max-w-md">
           <Input
             placeholder="Search tasks by title or keyword..."
-            value={filters.search || ''}
-            onChange={(e) => updateFilter('search', e.target.value)}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             leftIcon={<Search className="w-4 h-4" />}
             rightIcon={
-              filters.search ? (
+              searchValue ? (
                 <button
-                  onClick={() => updateFilter('search', '')}
+                  type="button"
+                  onClick={handleClearSearch}
                   className="p-1 hover:text-slate-600 dark:hover:text-slate-200"
                   title="Clear search"
+                  aria-label="Clear search input"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -48,7 +73,7 @@ export const TaskFilters: React.FC = () => {
         </div>
 
         {/* View Mode Toggle & Sort Options */}
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto">
           {/* Sort Selector */}
           <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 shadow-sm text-xs">
             <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
@@ -57,17 +82,17 @@ export const TaskFilters: React.FC = () => {
               onChange={(e) => updateFilter('sortBy', e.target.value)}
               className="bg-transparent border-none text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
             >
-              <option value="created_at">Created Date</option>
-              <option value="due_date">Due Date</option>
-              <option value="priority">Priority</option>
-              <option value="title">Title (A-Z)</option>
+              <option value="created_at" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Created Date</option>
+              <option value="due_date" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Due Date</option>
+              <option value="priority" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Priority</option>
+              <option value="title" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Title (A-Z)</option>
             </select>
 
             <button
               onClick={() =>
                 updateFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')
               }
-              className="px-1 py-0.5 rounded text-[11px] font-mono hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+              className="px-1 py-0.5 rounded text-[11px] font-mono hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
               title="Toggle sort order"
             >
               {filters.sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
@@ -153,11 +178,11 @@ export const TaskFilters: React.FC = () => {
             onChange={(e) => updateFilter('priority', e.target.value)}
             className="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none"
           >
-            <option value="all">All Priorities</option>
-            <option value="urgent">🔥 Urgent Priority</option>
-            <option value="high">⚡ High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
+            <option value="all" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">All Priorities</option>
+            <option value="urgent" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">🔥 Urgent Priority</option>
+            <option value="high" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">⚡ High Priority</option>
+            <option value="medium" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Medium Priority</option>
+            <option value="low" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Low Priority</option>
           </select>
 
           {(filters.search ||

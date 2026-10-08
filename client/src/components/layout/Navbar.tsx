@@ -100,8 +100,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu, onOpenFocusMod
                     className="fixed inset-0 z-30"
                     onClick={() => setIsUserMenuOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-40 animate-in fade-in zoom-in-95">
-                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-40 animate-in fade-in zoom-in-95">
+                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
                       <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                         {user?.name}
                       </p>

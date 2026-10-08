@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { initDb, memoryStore } from '../src/db/pool';
+import { initDb, memoryStore, query } from '../src/db/pool';
 
 const app = createApp();
 
@@ -9,6 +9,17 @@ describe('Multi-User Data Isolation & Security Constraints', () => {
   let userAToken: string;
   let userBToken: string;
   let userATaskId: string;
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  const userA = {
+    name: 'User Alpha',
+    email: `alpha-${uniqueId}@example.com`,
+    password: 'PasswordAlpha123!',
+  };
+  const userB = {
+    name: 'User Beta',
+    email: `beta-${uniqueId}@example.com`,
+    password: 'PasswordBeta123!',
+  };
 
   beforeAll(async () => {
     await initDb();
@@ -17,21 +28,15 @@ describe('Multi-User Data Isolation & Security Constraints', () => {
     // 1. Create User A
     const resA = await request(app)
       .post('/auth/register')
-      .send({
-        name: 'User Alpha',
-        email: 'alpha@example.com',
-        password: 'PasswordAlpha123!',
-      });
+      .send(userA);
+    expect(resA.status).toBe(201);
     userAToken = resA.body.token;
 
     // 2. Create User B
     const resB = await request(app)
       .post('/auth/register')
-      .send({
-        name: 'User Beta',
-        email: 'beta@example.com',
-        password: 'PasswordBeta123!',
-      });
+      .send(userB);
+    expect(resB.status).toBe(201);
     userBToken = resB.body.token;
 
     // 3. User A creates a confidential task
@@ -44,7 +49,19 @@ describe('Multi-User Data Isolation & Security Constraints', () => {
         status: 'pending',
         priority: 'urgent',
       });
+    expect(taskRes.status).toBe(201);
     userATaskId = taskRes.body.task.id;
+  });
+
+  afterAll(async () => {
+    try {
+      await query('DELETE FROM users WHERE email IN ($1, $2)', [
+        userA.email.toLowerCase(),
+        userB.email.toLowerCase(),
+      ]);
+    } catch {
+      // Ignore cleanup error if memory fallback
+    }
   });
 
   it("User B CANNOT read User A's task (GET /tasks/:id returns 404)", async () => {

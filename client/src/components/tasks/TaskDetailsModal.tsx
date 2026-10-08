@@ -56,7 +56,7 @@ export const TaskDetailsModal: React.FC = () => {
       >
         <div className="space-y-6">
           {/* Metadata chips */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={selectedTask.status} />
               <PriorityBadge priority={selectedTask.priority} />
@@ -71,7 +71,7 @@ export const TaskDetailsModal: React.FC = () => {
 
           {/* Description */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Description
             </h4>
             {selectedTask.description ? (
@@ -89,7 +89,7 @@ export const TaskDetailsModal: React.FC = () => {
           {selectedTask.image_url && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Attachment Preview
                 </h4>
                 <a
@@ -105,11 +105,13 @@ export const TaskDetailsModal: React.FC = () => {
 
               <div
                 onClick={() => setIsImageZoomed(!isImageZoomed)}
-                className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 cursor-zoom-in bg-slate-100 dark:bg-slate-850 group"
+                className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 cursor-zoom-in bg-slate-100 dark:bg-slate-800/60 group"
               >
                 <img
                   src={selectedTask.image_url}
                   alt={selectedTask.title}
+                  loading="lazy"
+                  decoding="async"
                   className={`w-full object-contain transition-all duration-300 ${
                     isImageZoomed ? 'max-h-[600px]' : 'max-h-72'
                   }`}
@@ -120,7 +122,7 @@ export const TaskDetailsModal: React.FC = () => {
           )}
 
           {/* Timestamps */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>Created: {new Date(selectedTask.created_at).toLocaleDateString()}</span>
             <span>Last Updated: {new Date(selectedTask.updated_at).toLocaleDateString()}</span>
           </div>

@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobileMenu, onOpenFocus
       <div className="space-y-6">
         {/* Navigation Links */}
         <div className="space-y-1">
-          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Workspace
           </p>
           {navItems.map((item) => {
@@ -102,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobileMenu, onOpenFocus
 
         {/* Workspace Quick Filters */}
         <div className="space-y-1">
-          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
             Priority Filters
           </p>
 
@@ -161,21 +161,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobileMenu, onOpenFocus
       </div>
 
       {/* Footer shortcut hints */}
-      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-        <div className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-1.5">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-300">
-            <Keyboard className="w-3.5 h-3.5" />
+      <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
+        <div className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-1.5">
+          <div className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
+            <Keyboard className="w-3.5 h-3.5 text-indigo-500" />
             <span>Power Shortcuts</span>
           </div>
           <div className="flex items-center justify-between text-[11px]">
             <span>New Task</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-mono text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[10px] shadow-xs">
               N
             </kbd>
           </div>
           <div className="flex items-center justify-between text-[11px]">
             <span>Focus Mode</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-mono text-[10px]">
+            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono text-[10px] shadow-xs">
               F
             </kbd>
           </div>

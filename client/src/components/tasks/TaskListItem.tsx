@@ -18,7 +18,7 @@ interface TaskListItemProps {
   task: Task;
 }
 
-export const TaskListItem: React.FC<TaskListItemProps> = ({ task }) => {
+export const TaskListItem: React.FC<TaskListItemProps> = React.memo(({ task }) => {
   const { toggleTaskStatus, setSelectedTask, setIsDetailsModalOpen, setIsEditModalOpen, deleteTask } =
     useTasks();
 
@@ -128,14 +128,14 @@ export const TaskListItem: React.FC<TaskListItemProps> = ({ task }) => {
                   className="fixed inset-0 z-20"
                   onClick={() => setIsMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-1 w-36 rounded-xl bg-white dark:bg-slate-850 shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-30 animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 mt-1 w-36 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-30 animate-in fade-in zoom-in-95">
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
                       setSelectedTask(task);
                       setIsEditModalOpen(true);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-left font-medium"
                   >
                     <Edit2 className="w-3.5 h-3.5 text-indigo-500" />
                     Edit Task
@@ -167,4 +167,6 @@ export const TaskListItem: React.FC<TaskListItemProps> = ({ task }) => {
       />
     </>
   );
-};
+});
+
+TaskListItem.displayName = 'TaskListItem';

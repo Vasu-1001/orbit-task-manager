@@ -38,7 +38,7 @@ export const Dashboard: React.FC = () => {
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <span>Workspace Overview</span>
           </h2>
-          <span className="text-xs text-slate-400">Real-time metrics</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Real-time metrics</span>
         </div>
 
         {isLoading && !stats ? (
@@ -98,7 +98,7 @@ export const Dashboard: React.FC = () => {
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Next 24 Hours
               </p>
               <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -122,7 +122,7 @@ export const Dashboard: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Pending Queue
               </p>
               <p className="text-lg font-bold text-slate-900 dark:text-slate-100">

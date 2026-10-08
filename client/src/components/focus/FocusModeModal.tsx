@@ -104,10 +104,10 @@ export const FocusModeModal: React.FC<FocusModeModalProps> = ({ isOpen, onClose 
       </button>
 
       {/* Main Focus Console */}
-      <div className="max-w-2xl w-full flex flex-col items-center text-center space-y-8 p-4">
+      <div className="max-w-2xl w-full flex flex-col items-center text-center space-y-6 sm:space-y-8 p-3 sm:p-4 max-h-[90vh] overflow-y-auto">
         {/* Integrated Pomodoro / Focus Timer */}
         <div className="flex flex-col items-center space-y-3">
-          <div className="text-6xl sm:text-7xl font-mono font-extrabold tracking-tight text-white drop-shadow-lg">
+          <div className="text-5xl sm:text-7xl font-mono font-extrabold tracking-tight text-white drop-shadow-lg">
             {formatTimer(secondsLeft)}
           </div>
 

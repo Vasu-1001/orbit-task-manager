@@ -24,6 +24,7 @@ export interface Task {
   owner_id: string;
   created_at: Date | string;
   updated_at: Date | string;
+  reminder_sent_at?: Date | string | null;
 }
 
 export interface TaskStats {

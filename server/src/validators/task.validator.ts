@@ -32,6 +32,7 @@ export const createTaskSchema = z.object({
   image_url: z
     .string()
     .url('Image URL must be a valid URL')
+    .or(z.string().startsWith('data:image/'))
     .optional()
     .nullable(),
   image_public_id: z
@@ -71,6 +72,7 @@ export const updateTaskSchema = z.object({
   image_url: z
     .string()
     .url('Image URL must be a valid URL')
+    .or(z.string().startsWith('data:image/'))
     .optional()
     .nullable(),
   image_public_id: z

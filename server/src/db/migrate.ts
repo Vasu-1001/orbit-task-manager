@@ -18,12 +18,14 @@ async function migrate() {
     const client = await pool.connect();
     console.log('[Migrate] Connected to PostgreSQL.');
     
-    const migrationFile = path.join(__dirname, 'migrations', '001_initial_schema.sql');
-    const sql = fs.readFileSync(migrationFile, 'utf8');
-
-    console.log('[Migrate] Executing 001_initial_schema.sql...');
-    await client.query(sql);
-    console.log('[Migrate] Migration completed successfully.');
+    const migrationsDir = path.join(__dirname, 'migrations');
+    const files = fs.readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
+    for (const file of files) {
+      console.log(`[Migrate] Executing ${file}...`);
+      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+      await client.query(sql);
+      console.log(`[Migrate] Migration ${file} completed successfully.`);
+    }
     
     client.release();
   } catch (error: any) {

@@ -1,21 +1,30 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { initDb, memoryStore } from '../src/db/pool';
+import { initDb, memoryStore, query } from '../src/db/pool';
 
 const app = createApp();
 
 describe('Authentication API Endpoints', () => {
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  const testUser = {
+    name: 'Sarah Connor',
+    email: `sarah-${uniqueId}@example.com`,
+    password: 'SecurePassword123!',
+  };
+
   beforeAll(async () => {
     await initDb();
     memoryStore.reset();
   });
 
-  const testUser = {
-    name: 'Sarah Connor',
-    email: 'sarah.connor@example.com',
-    password: 'SecurePassword123!',
-  };
+  afterAll(async () => {
+    try {
+      await query('DELETE FROM users WHERE email = $1', [testUser.email.toLowerCase()]);
+    } catch {
+      // Ignore cleanup error if memory fallback
+    }
+  });
 
   it('POST /auth/register - successfully registers a new user', async () => {
     const res = await request(app)

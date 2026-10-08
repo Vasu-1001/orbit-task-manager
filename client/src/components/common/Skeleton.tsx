@@ -17,7 +17,7 @@ export const TaskCardSkeleton: React.FC = () => {
       </div>
       <Skeleton className="h-5 w-3/4" />
       <Skeleton className="h-12 w-full" />
-      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-8 w-20 rounded-lg" />
       </div>

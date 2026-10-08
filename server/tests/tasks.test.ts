@@ -1,28 +1,39 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { initDb, memoryStore } from '../src/db/pool';
+import { initDb, memoryStore, query } from '../src/db/pool';
 
 const app = createApp();
 
 describe('Task CRUD API Endpoints', () => {
   let authToken: string;
   let createdTaskId: string;
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+  const testUser = {
+    name: 'Task Tester',
+    email: `tester-${uniqueId}@example.com`,
+    password: 'Password123!',
+  };
 
   beforeAll(async () => {
     await initDb();
     memoryStore.reset();
 
-    // Register and login a user for testing
+    // Register a fresh unique user for this test run
     const authRes = await request(app)
       .post('/auth/register')
-      .send({
-        name: 'Task Tester',
-        email: 'tester@example.com',
-        password: 'Password123!',
-      });
+      .send(testUser);
 
+    expect(authRes.status).toBe(201);
     authToken = authRes.body.token;
+  });
+
+  afterAll(async () => {
+    try {
+      await query('DELETE FROM users WHERE email = $1', [testUser.email.toLowerCase()]);
+    } catch {
+      // Ignore cleanup error if memory fallback
+    }
   });
 
   it('POST /tasks/ - creates a new task with valid fields', async () => {

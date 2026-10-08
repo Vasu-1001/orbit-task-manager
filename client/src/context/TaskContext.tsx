@@ -73,14 +73,19 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.tasks.getAll(filters);
       setTasks(res.tasks);
-      // Simultaneously refresh stats
-      fetchStats();
     } catch (err: any) {
       toastError(err.message, 'Failed to Load Tasks');
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, filters, fetchStats, toastError]);
+  }, [isAuthenticated, filters, toastError]);
+
+  // Fetch stats once on initial authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated, fetchStats]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -107,8 +112,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createTask = async (taskData: Partial<Task>): Promise<Task> => {
     try {
       const res = await api.tasks.create(taskData);
-      setTasks((prev) => [res.task, ...prev]);
-      fetchStats();
+      setFilters(defaultFilters);
+      const allTasksRes = await api.tasks.getAll(defaultFilters);
+      setTasks(allTasksRes.tasks);
+      await fetchStats();
       success('Task created successfully!', 'Task Added');
       setIsCreateModalOpen(false);
       return res.task;
@@ -121,11 +128,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateTask = async (id: string, taskData: Partial<Task>): Promise<Task> => {
     try {
       const res = await api.tasks.update(id, taskData);
-      setTasks((prev) => prev.map((t) => (t.id === id ? res.task : t)));
+      const allTasksRes = await api.tasks.getAll(filters);
+      setTasks(allTasksRes.tasks);
       if (selectedTask?.id === id) {
         setSelectedTask(res.task);
       }
-      fetchStats();
+      await fetchStats();
       success('Task updated successfully.', 'Updated');
       setIsEditModalOpen(false);
       return res.task;
@@ -138,12 +146,13 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteTask = async (id: string): Promise<void> => {
     try {
       await api.tasks.delete(id);
-      setTasks((prev) => prev.filter((t) => t.id !== id));
+      const allTasksRes = await api.tasks.getAll(filters);
+      setTasks(allTasksRes.tasks);
       if (selectedTask?.id === id) {
         setSelectedTask(null);
         setIsDetailsModalOpen(false);
       }
-      fetchStats();
+      await fetchStats();
       success('Task removed from your workspace.', 'Deleted');
     } catch (err: any) {
       toastError(err.message, 'Deletion Failed');

@@ -98,11 +98,14 @@ export async function query<T extends QueryResultRow = any>(
 export async function runMigrations(): Promise<void> {
   if (!pgPool) return;
 
-  const migrationPath = path.join(__dirname, 'migrations', '001_initial_schema.sql');
-  if (fs.existsSync(migrationPath)) {
-    const sql = fs.readFileSync(migrationPath, 'utf8');
-    await pgPool.query(sql);
-    console.log('[Database] Applied migration 001_initial_schema.sql successfully.');
+  const migrationsDir = path.join(__dirname, 'migrations');
+  if (fs.existsSync(migrationsDir)) {
+    const files = fs.readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
+    for (const file of files) {
+      const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+      await pgPool.query(sql);
+      console.log(`[Database] Applied migration ${file} successfully.`);
+    }
   }
 }
 

@@ -5,10 +5,12 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:server": "npm run dev",
     "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "ts-node-dev src/db/migrate.ts",
     "seed": "ts-node-dev src/db/seed.ts",
+    "verify:smtp": "ts-node-dev --transpile-only src/scripts/verify-smtp.ts",
     "test": "vitest run"
   },
   "dependencies": {

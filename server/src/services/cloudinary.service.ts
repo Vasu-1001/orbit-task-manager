@@ -25,14 +25,15 @@ export class CloudinaryService {
    */
   static async uploadImage(
     buffer: Buffer,
-    folder: string = 'orbit_tasks'
+    folder: string = 'orbit_tasks',
+    mimetype: string = 'image/jpeg'
   ): Promise<UploadResult> {
     if (!config.cloudinary.isConfigured) {
       // In development fallback mode without Cloudinary credentials:
       // Return a data URI or placeholder to prevent crashes and allow offline work
       console.warn('[Cloudinary Warning] Upload called without credentials; providing resilient local fallback.');
       const base64 = buffer.toString('base64');
-      const fallbackUrl = `data:image/jpeg;base64,${base64}`;
+      const fallbackUrl = `data:${mimetype};base64,${base64}`;
       return {
         url: fallbackUrl,
         publicId: `local_fallback_${Date.now()}`,
@@ -40,16 +41,23 @@ export class CloudinaryService {
     }
 
     return new Promise((resolve, reject) => {
+      const isSvg = mimetype.includes('svg');
+      const uploadOptions: Record<string, any> = {
+        folder,
+        resource_type: 'auto',
+      };
+
+      // Only apply raster transformations for non-SVG images
+      if (!isSvg) {
+        uploadOptions.transformation = [
+          { quality: 'auto:good' },
+          { fetch_format: 'auto' },
+          { max_width: 1920, max_height: 1080, crop: 'limit' },
+        ];
+      }
+
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: 'image',
-          transformation: [
-            { quality: 'auto:good' },
-            { fetch_format: 'auto' },
-            { max_width: 1920, max_height: 1080, crop: 'limit' },
-          ],
-        },
+        uploadOptions,
         (error, result) => {
           if (error || !result) {
             console.error('[Cloudinary Upload Error]', error);

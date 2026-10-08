@@ -5,8 +5,22 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="ORBIT — Personal Work OS is a precision-engineered task management SaaS for developers, designers, and modern professionals. Seamless multi-view task workflows, focus mode, and real-time insights." />
-    <meta name="theme-color" content="#4F46E5" />
     <title>ORBIT — Personal Work OS | Intelligent Task Management SaaS</title>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('orbit_theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 min-h-screen">
     <div id="root"></div>

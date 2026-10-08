@@ -103,10 +103,12 @@ export const TaskModal: React.FC = () => {
       return;
     }
 
-    // Validate mime type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!validTypes.includes(file.type)) {
-      setUploadError('Please select a valid image file (JPEG, PNG, WEBP, or GIF).');
+    // Validate image type (accept all image types)
+    const isImage =
+      file.type.startsWith('image/') ||
+      /\.(jpe?g|png|webp|gif|svg|bmp|tiff?|ico|avif|heic|heif)$/i.test(file.name);
+    if (!isImage) {
+      setUploadError('Please select a valid image file (all image formats supported).');
       return;
     }
 
@@ -284,7 +286,7 @@ export const TaskModal: React.FC = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png, image/jpeg, image/webp, image/gif"
+                accept="image/*"
                 onChange={handleFileChange}
                 className="hidden"
                 id="task-file-upload"
@@ -294,7 +296,7 @@ export const TaskModal: React.FC = () => {
                 className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                   isUploading
                     ? 'border-indigo-400 bg-indigo-50/20'
-                    : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-850'
+                    : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 <UploadCloud className="w-6 h-6 text-indigo-500 mb-1" />
@@ -302,7 +304,7 @@ export const TaskModal: React.FC = () => {
                   {isUploading ? 'Uploading image to Cloudinary...' : 'Upload screenshot or mockups'}
                 </span>
                 <span className="text-[10px] text-slate-400 mt-0.5">
-                  PNG, JPG, WEBP up to 5 MB
+                  All image formats supported (PNG, JPG, SVG, WEBP, GIF, etc.) up to 5 MB
                 </span>
               </label>
 
@@ -327,7 +329,7 @@ export const TaskModal: React.FC = () => {
         </div>
 
         {/* Modal Actions */}
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
           <Button
             type="button"
             variant="ghost"

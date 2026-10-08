@@ -72,7 +72,7 @@ graph TD
 
 ```
 task-manager/
-├── client/                         # Frontend Application (React + Vite + TypeScript)
+├── client/                         # Frontend Application (React 19 + Vite + TypeScript)
 │   ├── public/                     # Static assets & SVG favicon
 │   ├── src/
 │   │   ├── components/
@@ -85,10 +85,12 @@ task-manager/
 │   │   ├── pages/                  # Login, Register, Dashboard, TasksPage, NotFound
 │   │   ├── services/               # api.ts (Typed Fetch client with interceptors)
 │   │   ├── types/                  # TypeScript interface definitions
-│   │   ├── utils/                  # date.ts (Deadline urgency & formatting)
+│   │   ├── utils/                  # date.ts, cn.ts
 │   │   ├── App.tsx
 │   │   ├── main.tsx
 │   │   └── index.css
+│   ├── .env.example                # Frontend environment template
+│   ├── vercel.json                 # Client SPA route rewrite rules
 │   ├── tailwind.config.js
 │   ├── vite.config.ts
 │   └── package.json
@@ -98,7 +100,7 @@ task-manager/
 │   │   ├── config/                 # Environment loader & Zod validation
 │   │   ├── controllers/            # auth.controller.ts, task.controller.ts
 │   │   ├── db/
-│   │   │   ├── migrations/         # 001_initial_schema.sql
+│   │   │   ├── migrations/         # 001_initial_schema.sql, 002_add_reminder_sent_at.sql
 │   │   │   ├── migrate.ts          # Migration runner
 │   │   │   ├── pool.ts             # pg connection pool & fallback resilience layer
 │   │   │   └── seed.ts             # Demo data seeder
@@ -112,10 +114,11 @@ task-manager/
 │   │   ├── auth.test.ts            # Registration, login, duplicate email handling
 │   │   ├── tasks.test.ts           # CRUD, validation, stats
 │   │   └── isolation.test.ts       # Cross-tenant data isolation verification
+│   ├── .env.example                # Backend environment template
 │   └── package.json
 │
-├── .env.example                    # Production configuration template
-├── vercel.json                     # Vercel deployment configuration
+├── .env.example                    # Consolidated root environment template
+├── vercel.json                     # Monorepo full-stack Vercel rewrite configuration
 ├── package.json                    # Monorepo root orchestration scripts
 └── README.md
 ```
@@ -162,7 +165,7 @@ task-manager/
 ### Prerequisites
 - **Node.js**: v20 or later (`node -v`)
 - **npm**: v9 or later (`npm -v`)
-- **PostgreSQL**: (Optional for local dev — app includes a resilient offline store, but recommended for production verification)
+- **PostgreSQL**: PostgreSQL 14+ (Local PostgreSQL, Neon DB, Supabase, Render, Railway, or AWS RDS). *ORBIT also includes a resilient in-memory fallback layer for zero-config offline evaluation.*
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -176,10 +179,11 @@ cd ..
 ```
 
 ### 2. Configure Environment Variables
-Copy `.env.example` to `server/.env` and `client/.env`:
+Copy the template files to active environment configurations:
 ```bash
-cp .env.example server/.env
-cp .env.example client/.env
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+# Or duplicate the consolidated root .env.example
 ```
 
 Set your PostgreSQL connection string in `server/.env`:
@@ -193,7 +197,12 @@ npm run migrate
 npm run seed
 ```
 
-### 4. Start Development Servers
+### 4. Build & Verify Bundles (Optional)
+```bash
+npm run build         # Compiles both server (tsc) and client (tsc && vite build)
+```
+
+### 5. Start Development Servers
 From the repository root:
 ```bash
 # Start backend API (http://localhost:5000)
@@ -225,19 +234,24 @@ All endpoints return consistent JSON responses with appropriate HTTP status code
 |---|---|---|---|
 | `POST` | `/auth/register` (or `/register`) | Public | Register new user; returns JWT & user object |
 | `POST` | `/auth/login` (or `/login`) | Public | Authenticate user; returns JWT & sets HttpOnly cookie |
-| `POST` | `/auth/logout` | Authenticated | Clears session cookie |
-| `GET` | `/auth/me` | Authenticated | Returns current authenticated user profile |
+| `POST` | `/auth/logout` (or `/logout`) | Authenticated | Clears session cookie |
+| `GET` | `/auth/me` (or `/me`) | Authenticated | Returns current authenticated user profile |
 
 ### Task Endpoints
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/tasks/` | Authenticated | List tasks with filters (`status`, `priority`, `search`, `sortBy`, `sortOrder`) |
-| `POST` | `/tasks/` | Authenticated | Create new task scoped to verified `owner_id` |
+| `GET` | `/tasks` | Authenticated | List tasks with filters (`status`, `priority`, `search`, `sortBy`, `sortOrder`) |
+| `POST` | `/tasks` | Authenticated | Create new task scoped to verified `owner_id` |
 | `GET` | `/tasks/:id` | Authenticated | Retrieve specific task (enforces tenant isolation) |
 | `PUT` | `/tasks/:id` | Authenticated | Update task fields (enforces tenant isolation) |
 | `DELETE` | `/tasks/:id` | Authenticated | Delete task & trigger Cloudinary asset cleanup |
 | `GET` | `/tasks/stats` | Authenticated | Aggregate statistics (total, pending, in-progress, completed, overdue, velocity) |
-| `POST` | `/tasks/upload-image` | Authenticated | Multipart upload to Cloudinary (max 5MB, JPEG/PNG/WEBP/GIF) |
+| `POST` | `/tasks/upload-image` | Authenticated | Multipart upload to Cloudinary (max 5MB, JPEG/PNG/WEBP/GIF/SVG) |
+
+### Scheduled Jobs & Webhooks
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/jobs/reminders` (or `/api/jobs/reminders`) | Protected | Trigger 24h deadline reminder notification engine via external cron / scheduled webhook (`Bearer <CRON_SECRET>`) |
 
 ### Health Check
 | Method | Endpoint | Access | Description |
@@ -305,16 +319,16 @@ ORBIT includes responsive HTML email templates for:
 - **Welcome Email**: Sent automatically upon user registration.
 - **24-Hour Deadline Reminder**: Dispatched by the background scheduler for tasks due within 24 hours.
 
-Configure your SMTP provider in `server/.env`:
+Configure your transactional SMTP provider (e.g. Brevo / SendGrid / AWS SES) in `server/.env`:
 ```env
-EMAIL_HOST=smtp.sendgrid.net
+EMAIL_HOST=smtp-relay.brevo.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
-EMAIL_USER=apikey
-EMAIL_PASS=your_api_key_or_password
-EMAIL_FROM="ORBIT Work OS <noreply@orbit.app>"
+EMAIL_USER=your_brevo_smtp_login
+EMAIL_PASS=your_brevo_smtp_key
+EMAIL_FROM="ORBIT Work OS <verified_sender@example.com>"
 ```
-*(If left unconfigured in local development, emails are logged to the console via simulated mock transport to prevent crashes).*
+*(Verify your live SMTP connection and test real recipient delivery at any time via `npm run verify:smtp <optional_email>`).*
 
 ---
 
@@ -322,21 +336,25 @@ EMAIL_FROM="ORBIT Work OS <noreply@orbit.app>"
 
 ### Frontend (Vercel)
 1. Push your repository to GitHub.
-2. In Vercel, import the repository and set the **Root Directory** to `client`.
+2. In Vercel, import the repository and set the **Root Directory** to `client` (SPA rewrite rule is already pre-configured in `client/vercel.json`).
 3. Set the build command to `npm run build` and output directory to `dist`.
-4. Configure the environment variable:
-   - `VITE_API_URL`: `https://your-api-domain.com`
+4. Configure environment variables in Vercel project settings:
+   - `VITE_API_URL`: `https://your-backend-api.onrender.com`
 
-### Backend (Render / Railway / AWS / Vercel Serverless)
-1. Deploy the `server/` directory to a Node.js hosting platform (e.g., Render Web Service or Railway).
-2. Set environment variables:
+### Backend (Render / Railway / AWS / Docker)
+1. Deploy the `server/` directory to a Node.js hosting service (e.g., Render Web Service, Railway, or AWS Elastic Beanstalk).
+2. Set environment variables in your hosting dashboard:
    - `PORT`: `5000`
    - `NODE_ENV`: `production`
    - `CLIENT_URL`: `https://your-frontend.vercel.app`
-   - `DATABASE_URL`: `postgresql://user:password@neon-or-supabase-host:5432/dbname`
+   - `DATABASE_URL`: `postgresql://user:password@neon-or-supabase-host:5432/dbname` (SSL automatically enabled)
    - `JWT_SECRET`: A secure 64-character random string
-   - `CLOUDINARY_*` and `EMAIL_*` variables
-3. Run `npm run migrate` in production build step or release command.
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+   - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
+   - `CRON_SECRET`: Optional secret token to authenticate scheduled webhook invocations
+3. Set build and start commands:
+   - **Build Command**: `npm run build` (or `npm install && npm run build && npm run migrate`)
+   - **Start Command**: `npm run start` (launches `node dist/server.js`)
 
 ---
 

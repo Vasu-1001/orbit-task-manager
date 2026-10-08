@@ -21,13 +21,28 @@ export default {
           900: '#312E81',
           950: '#1E1B4B',
         },
+        slate: {
+          850: '#172033',
+        },
         surface: {
           light: '#F8FAFC',
           'light-card': '#FFFFFF',
           'light-border': '#E2E8F0',
           dark: '#0B0F19',
-          'dark-card': '#111827',
-          'dark-border': '#1F2937',
+          'dark-card': '#0F172A',
+          'dark-elevated': '#1E293B',
+          'dark-border': '#1E293B',
+        },
+        theme: {
+          bg: 'var(--bg-app)',
+          surface: 'var(--surface-primary)',
+          'surface-secondary': 'var(--surface-secondary)',
+          'surface-elevated': 'var(--surface-elevated)',
+          border: 'var(--border-default)',
+          'border-subtle': 'var(--border-subtle)',
+          'text-primary': 'var(--text-primary)',
+          'text-secondary': 'var(--text-secondary)',
+          'text-muted': 'var(--text-muted)',
         }
       },
       fontFamily: {

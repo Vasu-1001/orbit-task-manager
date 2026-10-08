@@ -98,12 +98,12 @@ export const DeadlineRadar: React.FC<DeadlineRadarProps> = ({ tasks }) => {
                 </h3>
               </div>
             </div>
-            <p className="hidden sm:block text-xs text-slate-400">{sec.description}</p>
+            <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400">{sec.description}</p>
           </div>
 
           {sec.tasks.length === 0 ? (
             <div className="p-6 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center">
-              <p className="text-xs text-slate-400">No active tasks in this horizon.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">No active tasks in this horizon.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

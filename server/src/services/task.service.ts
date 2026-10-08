@@ -125,6 +125,11 @@ export class TaskService {
       [title, description, status, priority, dueDate, imageUrl, imagePublicId, taskId, ownerId]
     );
 
+    // If due date was updated, reset reminder_sent_at to allow a new reminder for the updated deadline
+    if (data.due_date !== undefined) {
+      await query('UPDATE tasks SET reminder_sent_at = NULL WHERE id = $1 AND owner_id = $2', [taskId, ownerId]);
+    }
+
     return res.rows[0];
   }
 
