@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import 'multer';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';

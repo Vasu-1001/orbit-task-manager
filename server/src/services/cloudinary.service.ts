@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiOptions, UploadApiResponse, UploadApiErrorResponse, UploadStream } from 'cloudinary';
 import { config } from '../config/env';
 
 // Configure Cloudinary if credentials are present
@@ -42,7 +42,7 @@ export class CloudinaryService {
 
     return new Promise((resolve, reject) => {
       const isSvg = mimetype.includes('svg');
-      const uploadOptions: Record<string, any> = {
+      const uploadOptions: UploadApiOptions = {
         folder,
         resource_type: 'auto',
       };
@@ -56,9 +56,9 @@ export class CloudinaryService {
         ];
       }
 
-      const uploadStream = cloudinary.uploader.upload_stream(
+      const uploadStream: UploadStream = cloudinary.uploader.upload_stream(
         uploadOptions,
-        (error, result) => {
+        (error?: UploadApiErrorResponse, result?: UploadApiResponse) => {
           if (error || !result) {
             console.error('[Cloudinary Upload Error]', error);
             return reject(new Error(error?.message || 'Failed to upload image to Cloudinary'));
