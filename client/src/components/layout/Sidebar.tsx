@@ -5,13 +5,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   Target,
-  Radar,
-  Calendar,
-  Layers,
   Keyboard,
-  Clock,
-  AlertCircle,
-  Flame,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,7 +14,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobileMenu, onOpenFocusMode }) => {
-  const { stats, updateFilter, setViewMode } = useTasks();
+  const { stats } = useTasks();
 
   const navItems = [
     {
@@ -98,65 +92,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCloseMobileMenu, onOpenFocus
               Live
             </span>
           </button>
-        </div>
-
-        {/* Workspace Quick Filters */}
-        <div className="space-y-1">
-          <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-            Priority Filters
-          </p>
-
-          <NavLink
-            to="/tasks"
-            onClick={() => {
-              updateFilter('priority', 'urgent');
-              if (onCloseMobileMenu) onCloseMobileMenu();
-            }}
-            className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-2.5">
-              <Flame className="w-3.5 h-3.5 text-rose-500" />
-              <span>Urgent Priority</span>
-            </div>
-          </NavLink>
-
-          <NavLink
-            to="/tasks"
-            onClick={() => {
-              updateFilter('status', 'in_progress');
-              if (onCloseMobileMenu) onCloseMobileMenu();
-            }}
-            className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-2.5">
-              <Clock className="w-3.5 h-3.5 text-sky-500" />
-              <span>In Progress</span>
-            </div>
-            {stats?.inProgress ? (
-              <span className="text-[11px] text-sky-600 dark:text-sky-400 font-bold">
-                {stats.inProgress}
-              </span>
-            ) : null}
-          </NavLink>
-
-          <NavLink
-            to="/tasks"
-            onClick={() => {
-              setViewMode('radar');
-              if (onCloseMobileMenu) onCloseMobileMenu();
-            }}
-            className="flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-2.5">
-              <Radar className="w-3.5 h-3.5 text-amber-500" />
-              <span>Deadline Radar</span>
-            </div>
-            {stats?.overdue ? (
-              <span className="text-[11px] text-rose-500 font-bold">
-                {stats.overdue} overdue
-              </span>
-            ) : null}
-          </NavLink>
         </div>
       </div>
 

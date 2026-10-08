@@ -1,7 +1,4 @@
-import nodemailer from 'nodemailer';
 import { config } from '../config/env';
-
-let transporter: nodemailer.Transporter | null = null;
 
 /**
  * Sanitize and escape HTML entities to prevent HTML injection / XSS attacks in email templates
@@ -16,60 +13,59 @@ export function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, '&#39;');
 }
 
-/**
- * Returns configured nodemailer Transporter.
- * In automated test suites, automatically falls back to isolated jsonTransport
- * to keep unit tests fast, deterministic, and network-independent.
- */
-export function getTransporter(): nodemailer.Transporter {
-  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-    return nodemailer.createTransport({ jsonTransport: true });
-  }
-
-  if (!transporter) {
-    if (config.email.isConfigured) {
-      transporter = nodemailer.createTransport({
-        host: config.email.host,
-        port: config.email.port,
-        secure: config.email.secure,
-        auth: {
-          user: config.email.user,
-          pass: config.email.pass,
-        },
-      });
-      console.log(`[Email] Configured standard SMTP transporter (${config.email.host}:${config.email.port}).`);
-    } else {
-      transporter = nodemailer.createTransport({ jsonTransport: true });
-      console.log('[Email] Running in simulated/mock mode (configure EMAIL_USER & EMAIL_PASS in .env for live delivery).');
-    }
-  }
-  return transporter;
+export interface EmailSender {
+  name: string;
+  email: string;
 }
 
 /**
- * Reset transporter cache to allow reloading credentials dynamically
+ * Safely parses the EMAIL_FROM string into a sender name and email address.
+ * Handles formats:
+ * - "ORBIT Work OS <noreply@orbit.app>"
+ * - 'ORBIT Work OS' <noreply@orbit.app>
+ * - ORBIT Work OS <noreply@orbit.app>
+ * - <noreply@orbit.app>
+ * - "noreply@orbit.app"
+ * - noreply@orbit.app
  */
-export function resetTransporter(): void {
-  transporter = null;
-}
+export function parseSender(fromStr?: string): EmailSender {
+  const defaultSender: EmailSender = {
+    name: 'ORBIT Work OS',
+    email: 'noreply@orbit.app',
+  };
 
-/**
- * Verify live SMTP connection with current transporter configuration without exposing credentials
- */
-export async function verifySmtpConnection(): Promise<{ success: boolean; message: string }> {
-  try {
-    const mailer = getTransporter();
-    await mailer.verify();
+  if (!fromStr || typeof fromStr !== 'string') {
+    return defaultSender;
+  }
+
+  const trimmed = fromStr.trim();
+  if (!trimmed) {
+    return defaultSender;
+  }
+
+  // Strip wrapping outer quotes if present
+  const unquoted = trimmed.replace(/^["']|["']$/g, '').trim();
+
+  // Match: Name <email@domain.com> or <email@domain.com>
+  const angleMatch = unquoted.match(/^(?:["']?([^"']*)["']?\s*)?<([^>]+)>$/);
+  if (angleMatch) {
+    const rawName = angleMatch[1]?.trim();
+    const rawEmail = angleMatch[2]?.trim();
     return {
-      success: true,
-      message: `SMTP connection to ${config.email.host}:${config.email.port} verified successfully.`,
-    };
-  } catch (err: any) {
-    return {
-      success: false,
-      message: `SMTP verification failed for ${config.email.host}:${config.email.port} - ${err.message}`,
+      name: rawName && rawName.length > 0 ? rawName : defaultSender.name,
+      email: rawEmail && rawEmail.length > 0 ? rawEmail : defaultSender.email,
     };
   }
+
+  // Match bare email address: e.g. "noreply@orbit.app"
+  if (unquoted.includes('@')) {
+    return {
+      name: defaultSender.name,
+      email: unquoted,
+    };
+  }
+
+  return defaultSender;
 }
 
 /**
@@ -387,6 +383,97 @@ export function maskEmail(email: string): string {
   return `${local.slice(0, 2)}***${local.slice(-1)}@${domain}`;
 }
 
+export interface SendEmailOptions {
+  toEmail: string;
+  toName?: string;
+  subject: string;
+  htmlContent: string;
+  textContent: string;
+}
+
+/**
+ * Dispatch transactional email through Brevo HTTP API (POST https://api.brevo.com/v3/smtp/email)
+ */
+export async function sendBrevoEmail(
+  options: SendEmailOptions
+): Promise<{ success: boolean; messageId?: string }> {
+  const maskedRecipient = maskEmail(options.toEmail);
+
+  // 1. In automated unit/integration test suites, simulate email delivery
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+    const mockId = `<test-${Date.now()}@orbit.local>`;
+    console.log(`[EMAIL] Test mode: simulated Brevo API delivery`);
+    console.log(`[EMAIL] Recipient: ${maskedRecipient}`);
+    console.log(`[EMAIL] Message ID: ${mockId}`);
+    return { success: true, messageId: mockId };
+  }
+
+  const apiKey = config.email.apiKey;
+
+  // 2. If BREVO_API_KEY is not configured (e.g. fresh clone / local development), simulate delivery safely
+  if (!apiKey) {
+    console.warn(`[EMAIL] BREVO_API_KEY is not configured. Running in simulated/mock mode.`);
+    console.log(`[EMAIL] Recipient: ${maskedRecipient}`);
+    console.log(`[EMAIL] Subject: "${options.subject}"`);
+    return { success: true, messageId: `<mock-${Date.now()}@orbit.local>` };
+  }
+
+  // 3. Parse sender from EMAIL_FROM safely
+  const sender = parseSender(config.email.from);
+
+  const payload = {
+    sender: {
+      name: sender.name,
+      email: sender.email,
+    },
+    to: [
+      {
+        email: options.toEmail,
+        ...(options.toName && options.toName.trim() ? { name: options.toName.trim() } : {}),
+      },
+    ],
+    subject: options.subject,
+    htmlContent: options.htmlContent,
+    textContent: options.textContent,
+  };
+
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (res.ok) {
+      const data: any = await res.json().catch(() => ({}));
+      const messageId = data?.messageId || `<brevo-${Date.now()}@mailin.fr>`;
+      console.log(`[EMAIL] Brevo API accepted message`);
+      console.log(`[EMAIL] Message ID: ${messageId}`);
+      return { success: true, messageId };
+    }
+
+    const errorBody = await res.text().catch(() => '');
+    let errorMessage = `HTTP ${res.status} ${res.statusText}`;
+    try {
+      const parsed = JSON.parse(errorBody);
+      if (parsed.message) errorMessage = parsed.message;
+    } catch {
+      // Fallback to HTTP status text
+    }
+
+    console.error(`[EMAIL Error] Brevo API rejected message (${res.status}): ${errorMessage}`);
+    return { success: false };
+  } catch (err: any) {
+    console.error(`[EMAIL Error] Network error sending email via Brevo API: ${err.message}`);
+    return { success: false };
+  }
+}
+
 /**
  * Dispatch Welcome Email asynchronously
  */
@@ -394,7 +481,6 @@ export async function sendWelcomeEmail(
   toEmail: string,
   name: string
 ): Promise<{ success: boolean; messageId?: string; previewUrl?: string | false }> {
-  const mailer = getTransporter();
   const html = getWelcomeEmailHtml(name);
   const text = getWelcomeEmailPlainText(name);
   const maskedRecipient = maskEmail(toEmail);
@@ -403,26 +489,18 @@ export async function sendWelcomeEmail(
   console.log(`[EMAIL] Recipient: ${maskedRecipient}`);
 
   try {
-    const info = await mailer.sendMail({
-      from: config.email.from,
-      to: toEmail,
+    const result = await sendBrevoEmail({
+      toEmail,
+      toName: name,
       subject: 'Welcome to ORBIT — Personal Work OS',
-      text,
-      html,
+      htmlContent: html,
+      textContent: text,
     });
 
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    console.log(`[EMAIL] SMTP accepted message`);
-    console.log(`[EMAIL] Message ID: ${info.messageId || 'mock'}`);
-    if (previewUrl) {
-      console.log(`[EMAIL Sandbox Preview] ${previewUrl}`);
-      console.log(`[EMAIL Sandbox Notice] Provider is Ethereal Email (simulated test sandbox). Messages do not route to real recipient inboxes.`);
-    }
-
     return {
-      success: true,
-      messageId: info.messageId,
-      previewUrl,
+      success: result.success,
+      messageId: result.messageId,
+      previewUrl: false,
     };
   } catch (err: any) {
     console.error(`[EMAIL Error] Failed to send welcome email to ${maskedRecipient}: ${err.message}`);
@@ -442,7 +520,6 @@ export async function sendDeadlineReminderEmail(
   priority: string = 'medium',
   status: string = 'pending'
 ): Promise<{ success: boolean; messageId?: string; previewUrl?: string | false }> {
-  const mailer = getTransporter();
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -456,28 +533,71 @@ export async function sendDeadlineReminderEmail(
   console.log(`[EMAIL] Recipient: ${maskedRecipient}`);
 
   try {
-    const info = await mailer.sendMail({
-      from: config.email.from,
-      to: toEmail,
+    const result = await sendBrevoEmail({
+      toEmail,
+      toName: userName,
       subject: `⏰ Deadline Reminder: "${taskTitle}" is due soon`,
-      text,
-      html,
+      htmlContent: html,
+      textContent: text,
     });
 
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    console.log(`[EMAIL] SMTP accepted message`);
-    console.log(`[EMAIL] Message ID: ${info.messageId || 'mock'}`);
-    if (previewUrl) {
-      console.log(`[EMAIL Sandbox Preview] ${previewUrl}`);
-    }
-
     return {
-      success: true,
-      messageId: info.messageId,
-      previewUrl,
+      success: result.success,
+      messageId: result.messageId,
+      previewUrl: false,
     };
   } catch (err: any) {
     console.error(`[EMAIL Error] Failed to send reminder email to ${maskedRecipient}: ${err.message}`);
     return { success: false };
   }
+}
+
+/**
+ * Verify Brevo API connection by checking the account endpoint
+ */
+export async function verifyBrevoConnection(): Promise<{ success: boolean; message: string }> {
+  const apiKey = config.email.apiKey;
+  if (!apiKey) {
+    return {
+      success: false,
+      message: 'BREVO_API_KEY is not configured in environment.',
+    };
+  }
+
+  try {
+    const res = await fetch('https://api.brevo.com/v3/account', {
+      method: 'GET',
+      headers: {
+        'api-key': apiKey,
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (res.ok) {
+      const data: any = await res.json().catch(() => ({}));
+      const emailDomain = data?.email ? maskEmail(data.email) : 'account';
+      return {
+        success: true,
+        message: `Brevo API v3 connection verified successfully (${emailDomain}).`,
+      };
+    } else {
+      const data: any = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: `Brevo API verification failed with HTTP ${res.status}: ${data?.message || res.statusText}`,
+      };
+    }
+  } catch (err: any) {
+    return {
+      success: false,
+      message: `Brevo API connection error: ${err.message}`,
+    };
+  }
+}
+
+export const verifySmtpConnection = verifyBrevoConnection;
+
+export function resetTransporter(): void {
+  // Retained for backwards compatibility
 }

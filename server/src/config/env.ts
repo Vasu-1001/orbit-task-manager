@@ -23,12 +23,9 @@ export const config = {
     isConfigured: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
   },
   email: {
-    host: process.env.EMAIL_HOST || 'smtp-relay.brevo.com',
-    port: parseInt(process.env.EMAIL_PORT || '587', 10),
-    secure: process.env.EMAIL_SECURE === 'true',
-    user: process.env.EMAIL_USER || '',
-    pass: process.env.EMAIL_PASS || '',
+    apiKey: process.env.BREVO_API_KEY || '',
+    brevoApiKey: process.env.BREVO_API_KEY || '',
     from: process.env.EMAIL_FROM || 'ORBIT Work OS <noreply@orbit.app>',
-    isConfigured: Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+    isConfigured: Boolean(process.env.BREVO_API_KEY)
   }
 };

@@ -319,16 +319,12 @@ ORBIT includes responsive HTML email templates for:
 - **Welcome Email**: Sent automatically upon user registration.
 - **24-Hour Deadline Reminder**: Dispatched by the background scheduler for tasks due within 24 hours.
 
-Configure your transactional SMTP provider (e.g. Brevo / SendGrid / AWS SES) in `server/.env`:
+Configure your transactional email provider (Brevo HTTPS API) in `server/.env`:
 ```env
-EMAIL_HOST=smtp-relay.brevo.com
-EMAIL_PORT=587
-EMAIL_SECURE=false
-EMAIL_USER=your_brevo_smtp_login
-EMAIL_PASS=your_brevo_smtp_key
+BREVO_API_KEY=your_brevo_v3_api_key
 EMAIL_FROM="ORBIT Work OS <verified_sender@example.com>"
 ```
-*(Verify your live SMTP connection and test real recipient delivery at any time via `npm run verify:smtp <optional_email>`).*
+*(Verify your live email connection and test real recipient delivery at any time via `npm run verify:smtp <optional_email>`).*
 
 ---
 
@@ -350,7 +346,7 @@ EMAIL_FROM="ORBIT Work OS <verified_sender@example.com>"
    - `DATABASE_URL`: `postgresql://user:password@neon-or-supabase-host:5432/dbname` (SSL automatically enabled)
    - `JWT_SECRET`: A secure 64-character random string
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-   - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
+   - `BREVO_API_KEY`, `EMAIL_FROM`
    - `CRON_SECRET`: Optional secret token to authenticate scheduled webhook invocations
 3. Set build and start commands:
    - **Build Command**: `npm run build` (or `npm install && npm run build && npm run migrate`)
