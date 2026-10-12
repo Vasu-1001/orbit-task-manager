@@ -64,6 +64,7 @@ graph TD
 - **Cloud Media**: Cloudinary SDK
 - **Email Delivery**: Nodemailer (HTML responsive templates)
 - **Job Scheduling**: `node-cron`
+- **AI Intelligence**: Official Google Gemini SDK (`@google/generative-ai`), supporting `gemini-1.5-flash`
 - **Testing**: Vitest + Supertest
 
 ---
@@ -248,6 +249,12 @@ All endpoints return consistent JSON responses with appropriate HTTP status code
 | `GET` | `/tasks/stats` | Authenticated | Aggregate statistics (total, pending, in-progress, completed, overdue, velocity) |
 | `POST` | `/tasks/upload-image` | Authenticated | Multipart upload to Cloudinary (max 5MB, JPEG/PNG/WEBP/GIF/SVG) |
 
+### Gemini AI Assistant Endpoints
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/ai/chat` (or `/ai/chat`) | Authenticated | Task-aware productivity conversation powered by Google Gemini API (`{ message, history }`) |
+
+
 ### Scheduled Jobs & Webhooks
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
@@ -284,6 +291,12 @@ Automated tests are written with Vitest and Supertest covering 20 critical scena
    - User B attempting to delete User A's task returns `404 Not Found`
    - User B's task list does not leak User A's tasks
    - Client attempts to forge `owner_id` in request body are rejected/overridden
+4. **AI Assistant (/api/ai/chat)**:
+   - Rejection of unauthenticated requests (401 Unauthorized)
+   - Input length and non-empty validation (400 Bad Request)
+   - Resilient fallback handling when API key is unconfigured
+   - Strict tenant isolation: other user's tasks are never exposed to AI context
+   - Successful chat turn formatting and history preservation
 
 ### Run Tests
 ```bash
@@ -292,12 +305,14 @@ npm run test
 
 Expected output:
 ```
- ✓ tests/tasks.test.ts (8 tests)
- ✓ tests/isolation.test.ts (5 tests)
  ✓ tests/auth.test.ts (7 tests)
+ ✓ tests/ai.test.ts (6 tests)
+ ✓ tests/isolation.test.ts (5 tests)
+ ✓ tests/tasks.test.ts (8 tests)
+ ✓ tests/email.test.ts (16 tests)
 
- Test Files  3 passed (3)
-      Tests  20 passed (20)
+ Test Files  5 passed (5)
+      Tests  42 passed (42)
 ```
 
 ---
@@ -348,6 +363,8 @@ EMAIL_FROM="ORBIT Work OS <verified_sender@example.com>"
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
    - `BREVO_API_KEY`, `EMAIL_FROM`
    - `CRON_SECRET`: Optional secret token to authenticate scheduled webhook invocations
+   - `GEMINI_API_KEY`: Google Gemini API key from [Google AI Studio](https://aistudio.google.com/)
+   - `GEMINI_MODEL`: (Optional) AI Model identifier, defaults to `gemini-1.5-flash`
 3. Set build and start commands:
    - **Build Command**: `npm run build` (or `npm install && npm run build && npm run migrate`)
    - **Start Command**: `npm run start` (launches `node dist/server.js`)
@@ -356,14 +373,15 @@ EMAIL_FROM="ORBIT Work OS <verified_sender@example.com>"
 
 ## 12. Distinctive SaaS Features
 
-1. **Focus Mode**: Activated with shortcut `F` or via navigation. Centers on one task at a time, eliminating UI noise, with an integrated 25-minute Pomodoro session timer.
-2. **Deadline Radar**: Visual time-horizon grouping of tasks (Overdue, Due Today, Due Next 7 Days, and Upcoming Backlog).
-3. **Task Insights**: Real-time velocity gauge calculating authenticated user completion rate and workload distribution.
-4. **Global Power Shortcuts**:
+1. **ORBIT AI Productivity Copilot**: Floating conversational assistant powered by Google Gemini API. Context-aware with real-time access to the authenticated user's tasks, deadlines, and velocity metrics to provide daily schedules, priority rankings, and task breakdowns without modifying tenant data.
+2. **Focus Mode**: Activated with shortcut `F` or via navigation. Centers on one task at a time, eliminating UI noise, with an integrated 25-minute Pomodoro session timer.
+3. **Deadline Radar**: Visual time-horizon grouping of tasks (Overdue, Due Today, Due Next 7 Days, and Upcoming Backlog).
+4. **Task Insights**: Real-time velocity gauge calculating authenticated user completion rate and workload distribution.
+5. **Global Power Shortcuts**:
    - `N`: Instantly open New Task dialog from anywhere.
    - `F`: Launch Focus Mode console.
    - `Esc`: Close open modals and return to workspace.
-5. **Theme Engine**: Seamless toggle between Refined Light and Midnight Dark themes with persistent system preference memory.
+6. **Theme Engine**: Seamless toggle between Refined Light and Midnight Dark themes with persistent system preference memory.
 
 ---
 

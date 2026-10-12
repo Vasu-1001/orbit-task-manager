@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { config } from './config/env';
 import authRoutes from './routes/auth.routes';
 import taskRoutes from './routes/task.routes';
+import aiRoutes from './routes/ai.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { apiLimiter } from './middleware/rateLimit';
 import { processUpcomingDeadlines } from './services/scheduler.service';
@@ -91,6 +92,9 @@ export function createApp(): Application {
 
   app.use('/api/tasks', taskRoutes);
   app.use('/tasks', taskRoutes);
+
+  app.use('/api/ai', aiRoutes);
+  app.use('/ai', aiRoutes);
 
   // Trigger deadline reminders (used for external cron services / serverless scheduled webhooks)
   app.post(['/api/jobs/reminders', '/jobs/reminders'], async (req: Request, res: Response) => {

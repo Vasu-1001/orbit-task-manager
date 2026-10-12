@@ -17,3 +17,15 @@ export const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const aiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute window
+  max: 25, // 25 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'TooManyRequests',
+    message: 'Too many AI requests. Please wait a moment before sending another prompt.',
+  },
+});
+

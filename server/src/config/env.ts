@@ -27,5 +27,10 @@ export const config = {
     brevoApiKey: process.env.BREVO_API_KEY || '',
     from: process.env.EMAIL_FROM || 'ORBIT Work OS <noreply@orbit.app>',
     isConfigured: Boolean(process.env.BREVO_API_KEY)
+  },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || '',
+    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
+    isConfigured: Boolean(process.env.GEMINI_API_KEY)
   }
 };

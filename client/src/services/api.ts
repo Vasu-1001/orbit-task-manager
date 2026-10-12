@@ -149,6 +149,15 @@ class ApiClient {
       });
     },
   };
+
+  // Gemini AI Assistant Endpoints
+  ai = {
+    chat: (message: string, history?: Array<{ role: 'user' | 'model'; content: string }>) =>
+      this.request<{ reply: string; model: string }>('/api/ai/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message, history: history || [] }),
+      }),
+  };
 }
 
 export const api = new ApiClient();

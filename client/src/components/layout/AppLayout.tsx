@@ -6,6 +6,7 @@ import { ToastContainer } from '../common/ToastContainer';
 import { TaskModal } from '../tasks/TaskModal';
 import { TaskDetailsModal } from '../tasks/TaskDetailsModal';
 import { FocusModeModal } from '../focus/FocusModeModal';
+import { AiChatbot } from '../ai/AiChatbot';
 import { useTasks } from '../../context/TaskContext';
 
 export const AppLayout: React.FC = () => {
@@ -107,6 +108,9 @@ export const AppLayout: React.FC = () => {
         isOpen={isFocusModeOpen}
         onClose={() => setIsFocusModeOpen(false)}
       />
+
+      {/* Floating AI Assistant */}
+      <AiChatbot />
 
       {/* Toast Notification Mount */}
       <ToastContainer />

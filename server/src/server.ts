@@ -3,6 +3,7 @@ import { config } from './config/env';
 import { initDb, closeDb } from './db/pool';
 import { initScheduler } from './services/scheduler.service';
 
+// Server entrypoint - ORBIT Personal Work OS
 let isStarting = false;
 let isShuttingDown = false;
 
